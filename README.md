@@ -1,3 +1,6 @@
+# Hopkins Underground
+This is a fork of the PureJavaComm project. We publish this artifact to our own S3 maven repo. The fork allows us to build from source and bugfix if necessary. This library is not published to public maven repos.
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.purejavacomm/purejavacomm/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.github.purejavacomm/purejavacomm)
 [![Javadocs](https://www.javadoc.io/badge/com.github.purejavacomm/purejavacomm.svg)](https://www.javadoc.io/doc/com.github.purejavacomm/purejavacomm)
 
