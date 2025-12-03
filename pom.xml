@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
         <groupId>com.hopkinsunderground</groupId>
 	<artifactId>purejavacomm</artifactId>
-	<version>1.0.3</version>
+	<version>1.0.3-SNAPSHOT</version>
 
 	<name>PureJavaComm</name>
 	<url>http://www.sparetimelabs.com/purejavacomm/purejavacomm.php</url>
@@ -102,11 +102,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>maven-s3-snapshot-repo</id>
-            <url>s3://maven.hopkinsunderground.com/snapshot</url>
+            <url>s3://maven.farmersfridge.com/snapshot</url>
         </snapshotRepository>
         <repository>
             <id>maven-s3-release-repo</id>
-            <url>s3://maven.hopkinsunderground.com/release</url>
+            <url>s3://maven.farmersfridge.com/release</url>
         </repository>
     </distributionManagement>
 
