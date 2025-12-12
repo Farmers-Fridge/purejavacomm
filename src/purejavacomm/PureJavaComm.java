@@ -8,7 +8,7 @@ public class PureJavaComm {
 
 	// change this is if you fork the project
 	public static String getFork() {
-		return "SpareTimeLabs";
+		return "HopkinsUnderground";
 	}
 
 }
