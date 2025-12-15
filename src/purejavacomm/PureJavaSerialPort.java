@@ -587,7 +587,7 @@ public class PureJavaSerialPort extends SerialPort {
 	 * 		...
 	 * 		// allocate read buffer
 	 * 		byte[] readBuffer = new byte[messageLength];
-	 *		...
+	 * 	...
 	 * 
 	 * 		// then perform raw read, not this may block indefinitely
 	 * 		int n = read(FD, readBuffer, messageLength);
@@ -712,6 +712,8 @@ public class PureJavaSerialPort extends SerialPort {
 
 				@Override
 				final public int available() throws IOException {
+					if (m_FD < 0)
+						return 0;
 					checkState();
 					if (ioctl(m_FD, FIONREAD, im_Available) < 0) {
 						PureJavaSerialPort.this.close();
@@ -723,7 +725,6 @@ public class PureJavaSerialPort extends SerialPort {
 
 				@Override
 				final public int read() throws IOException {
-					checkState();
 					byte[] buf = { 0 };
 					int n = read(buf, 0, 1);
 
@@ -735,15 +736,21 @@ public class PureJavaSerialPort extends SerialPort {
 					super.close();
 				}
 
+				private void throwStreamClosedException() throws IOException {
+					throw new IOException("Stream Closed");
+				}
+
 				@Override
 				final public int read(byte[] buffer, int offset, int length) throws IOException {
-					// reads++;
+
 					if (buffer == null)
 						throw new IllegalArgumentException("buffer null");
 					if (length == 0)
 						return 0;
 					if (offset < 0 || length < 0 || offset + length > buffer.length)
 						throw new IndexOutOfBoundsException("buffer.length " + buffer.length + " offset " + offset + " length " + length);
+					if (m_FD < 0)
+						throwStreamClosedException();
 
 					if (RAW_READ_MODE) {
 						if (m_TimeoutThresholdChanged) { // does not need the lock if we just check the value
@@ -772,9 +779,6 @@ public class PureJavaSerialPort extends SerialPort {
 						return bytesRead;
 
 					} // End of raw read mode code
-
-					if (m_FD < 0) // replaces checkState call
-						failWithIllegalStateException();
 
 					if (m_TimeoutThresholdChanged) { // does not need the lock if we just check the alue
 						synchronized (m_ThresholdTimeoutLock) {
@@ -850,13 +854,13 @@ public class PureJavaSerialPort extends SerialPort {
 											// Windows or Mac OS X
 								n = poll(im_ReadPollFD, im_PollFDn, timeoutValue);
 								if (n < 0 || m_FD < 0) // the port closed while we were blocking in poll
-									throw new IOException();
+									throwStreamClosedException();
 
 								if ((im_ReadPollFD[1].revents & POLLIN) != 0)
 									jtermios.JTermios.read(m_PipeRdFD, im_Nudge, 1);
 								int re = im_ReadPollFD[0].revents;
-								if ((re & POLLNVAL_OUT) != 0)
-									throw new IOException();
+								if ((re & POLLNVAL) != 0)
+									throwStreamClosedException();
 								dataAvailable = (re & POLLIN) != 0;
 
 							} else { // this is a bit slower but then again it is unlikely
@@ -878,11 +882,11 @@ public class PureJavaSerialPort extends SerialPort {
 									im_ReadTimeVal.tv_usec = timeoutValue * 1000;
 								}
 								n = select(maxFD + 1, im_ReadFDSet, null, null, im_ReadTimeVal);
-								if (n < 0)
-									throw new IOException();
 								if (m_FD < 0) // the port closed while we were
-												// blocking in select
-									throw new IOException();
+									// blocking in select
+									throwStreamClosedException();
+								if (n < 0)
+									throw new IOException(String.format("select() < 0 , errno()=%d",errno()));
 								dataAvailable = FD_ISSET(m_FD, im_ReadFDSet);
 							}
 							if (n == 0 && m_ReceiveTimeoutEnabled)
@@ -915,7 +919,7 @@ public class PureJavaSerialPort extends SerialPort {
 						// possibly or we have timed out.
 
 						if (bytesRead < 0) // an error occured
-							throw new IOException();
+							throw new IOException(String.format("read() < 0 , errno()=%d",errno()));
 
 						bytesReceived += bytesRead;
 
@@ -1088,7 +1092,7 @@ public class PureJavaSerialPort extends SerialPort {
 
 		m_MinVTIME = Integer.getInteger("purejavacomm.minvtime", 100);
 		int flags = fcntl(m_FD, F_GETFL, 0);
-		if (flags<0)
+		if (flags < 0)
 			checkReturnCode(flags);
 		flags &= ~O_NONBLOCK;
 		checkReturnCode(fcntl(m_FD, F_SETFL, flags));

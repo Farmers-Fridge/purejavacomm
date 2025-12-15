@@ -8,3 +8,4 @@ build/
 bin/
 purejavacomm.iml
 lib-rt/
+.DS_Store
